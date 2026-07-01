@@ -10,7 +10,8 @@ mpl.rcParams['backend'] = 'TkAgg'
 cm = model('CSALT')
 
 # Create an empty MS from scratch
-cdir = '/pool/asha0/casa-release-5.7.2-4.el7/data/alma/simmos/'
+#cdir = '/pool/asha0/casa-release-5.7.2-4.el7/data/alma/simmos/'
+cdir  = '/Users/sdjiang/.casa/data/alma/simmos/'
 cm.template_MS('testdata/test.ms', 
                config=[cdir+'alma.cycle8.5.cfg', cdir+'alma.cycle8.8.cfg'],
                t_total=['2min', '7min'], t_integ='30s', observatory='ALMA',

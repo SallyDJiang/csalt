@@ -13,8 +13,8 @@ import casatools
 import emcee
 import importlib
 import matplotlib.pyplot as plt
-_ = importlib.import_module('plot_setups')
-plt.style.use(['default', '/home/sandrews/mpl_styles/nice_img.mplstyle'])
+#_ = importlib.import_module('plot_setups')
+#plt.style.use(['default', '/home/sandrews/mpl_styles/nice_img.mplstyle'])
 
 
 warnings.filterwarnings("ignore")

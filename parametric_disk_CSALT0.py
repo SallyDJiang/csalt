@@ -1,4 +1,4 @@
-from csalt.csalt_rev import csalt_disk
+from csalt.csalt_disk import csalt_disk
 import scipy.constants as sc
 import numpy as np
 from vis_sample.classes import SkyImage
@@ -26,7 +26,6 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     inc, PA, mstar, r_l, z_10, z_q, Tb_10, Tb_q, Tmax_b, dV_10, \
         logtau_10, tau_q, vlsr, dx, dy = pars
 
-    print(z_10)
 
 
     # Fixed and adjusted parameters
@@ -59,10 +58,10 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
         """Emission surface for the back side of the disk."""
         return -z_f(r)
 
-    disk.set_disk_coords(x0=x0, y0=y0, inc=inc, PA=PA, dist=dist,
+    disk.set_disk_coords(dx=x0, dy=y0, incl=inc, PA=PA, dist=dist,
                          z_func=z_f, side='front')
 
-    disk.set_disk_coords(x0=x0, y0=y0, inc=inc, PA=PA, dist=dist,
+    disk.set_disk_coords(dx=x0, dy=y0, incl=inc, PA=PA, dist=dist,
                          z_func=z_b, side='back')
 
 
@@ -85,11 +84,11 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     # deal with the divergence of power laws close to the disk center. Although
     # this can be specified for each side independently, we assume they're the
     # same for simplicity (so setting `side='both'`).
-    disk.set_Tgas_profile(function=Tgas, min=0.0, max=Tmax_f, side='front')
-    disk.set_Tgas_profile(function=Tgas, min=0.0, max=Tmax_b, side='back')
-    disk.set_dV_profile(function=dV, min=0.0, max=dVmax_f, side='front')
-    disk.set_dV_profile(function=dV, min=0.0, max=dVmax_b, side='back')
-    disk.set_tau_profile(function=tau, min=0.0, max=None, side='both')
+    disk.set_Tgas_profile(function=Tgas, vmin=0.0, vmax=Tmax_f, side='front')
+    disk.set_Tgas_profile(function=Tgas, vmin=0.0, vmax=Tmax_b, side='back')
+    disk.set_dV_profile(function=dV, vmin=0.0, vmax=dVmax_f, side='front')
+    disk.set_dV_profile(function=dV, vmin=0.0, vmax=dVmax_b, side='back')
+    disk.set_tau_profile(function=tau, vmin=0.0, vmax=None, side='both')
 
 
     # Set up the velocity structure. Here we use a simple Keplerian rotation
@@ -116,4 +115,4 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     mod_ra  = disk.cell_sky * (np.arange(npix) - 0.5 * npix) 
     mod_dec = disk.cell_sky * (np.arange(npix) - 0.5 * npix)
 
-    return SkyImage(mod_data, mod_ra, mod_dec, freq, None), disk
+    return SkyImage(mod_data, mod_ra, mod_dec, freq, None)
