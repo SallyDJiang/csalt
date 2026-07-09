@@ -12,12 +12,13 @@ import numpy as np
 import cmasher as cmr
 
 
-cubes = ['SigOriData/SO1152_12CO_PURE']
-lbls = ['pure']
+cubes = ['SigOriData/SO1152_template']
+lbls = ['model']
 
-nchans = 6
+nchans = 20
 
-fig, axs = plt.subplots(nrows=1, ncols=nchans, figsize=(7.5, 1.1))
+fig, axs_2 = plt.subplots(nrows=2, ncols=int(nchans/2), figsize=(7.5, 2.1), dpi=300)
+axs = axs_2.flatten()
 fl, fr, fb, ft, hs, ws = 0.06, 0.88, 0.18, 0.99, 0.12, 0.03
 xlims = [1.1, -1.1]
 ylims = [-1.1, 1.1]
@@ -97,6 +98,10 @@ cb = Colorbar(ax=cbax, mappable=im, orientation='vertical',
 cb.set_label('$T_{\\rm b}$  (K)', rotation=270, labelpad=13)
 
 fig.subplots_adjust(left=fl, right=fr, bottom=fb, top=ft, hspace=hs, wspace=ws)
-fig.savefig('testdata/demo_create.png')
-fig.savefig('testdata/demo_create.pdf')
+fig.savefig('SigOriData/demo_res.png')
+fig.savefig('SigOriData/demo_res.pdf')
 fig.clf()
+
+
+
+
