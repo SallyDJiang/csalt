@@ -7,34 +7,26 @@ from csalt.model import *
 from csalt.helpers import *
 import matplotlib as mpl
 
-##### DOUBLE CHECK THESE PARAMETERS BEFORE RUNNING THE SCRIPT ##### 
-tclean_kw = {'imsize': 600, 'start': '7.0km/s', 'width': '1.0km/s',
-             'nchan': 10, 'restfreq': '345.7959899GHz', 'cell': '0.02arcsec',
-             'scales': [0, 10, 20, 50], 'niter': 50000,
-             'robust': 0.5, 'threshold': '3mJy'}#
+
+'''
+Code inputs information on disk of interest then creates a model measurement set and images it.
+
+output should be a fits with the imaged model cube 
+'''
+
+### IMPORTANT THINGS TO CHANGE 
+
+datapath = "SigOriData/"
+obs_measurement_set = f'{datapath}SO1152_12CO.ms.contsub_lsrk_.ms'  # path to the measurement set
+mdict_name_prefix = f"{datapath}SO1152_12CO"
 
 
-# Define some Keplerian mask keywords
-kepmask_kw = {'inc': 65.8, 'PA': 324.9, 'mstar': 0.58, 'dist': 391.3, 'vlsr': 12000,
-              'r_max': 1.0, 'nbeams': 1.0, 'zr': 0.2}
-
-
-# Image the residual cubes
-imagecube('SigOriData/SO1152_12CO.ms.contsub_lsrk_avg', 'SigOriData/SO1152_12CO_PRE',
-          kepmask_kwargs=kepmask_kw, tclean_kwargs=tclean_kw)
-
-
-##### MODEL #####
-
-# Define some fixed attributes for the model
-fixed_kw = {'FOV': 5.11, 'Npix': 512, 'dist': 391.3,
-            'Nup': 5, 'doppcorr': 'approx', 'noise_inject': 0.005}
-
-#########-----CHANGE MODEL PARAMETERS BELOW-----#########
+########----- MODEL PARAMETERS BELOW (CHANGE) -----#########
 # Disk geometry
-inc     = -47.4       # inclination (degrees)
-PA      = 162       # position angle (degrees)
-mstar   = 0.1       # stellar mass (solar masses)
+inc     = 65.8      # inclination (degrees)
+PA      = 324.9      # position angle (degrees)
+mstar   = 0.58       # stellar mass (solar masses)
+dist    = 391.3     # distance (pc)
 
 # Disk structure
 r_l     = 120       # outer edge (au)
@@ -54,48 +46,82 @@ logtau_10 = 2.2     # log optical depth at 10 au
 tau_q     = -1      # optical depth gradient
 
 # Kinematics
-vlsr    = 11000      # systemic velocity (m/s)
+vlsr    = 12000      # systemic velocity (m/s)
 dx      = 0         # RA offset (arcsec)
 dy      = 0         # Dec offset (arcsec)
+
+# Tclean parameters
+imsize     = 500      # image size (pixels)
+start_vel  = '7.0km/s'       # starting velocity for imaging
+width      = '1.0km/s'    # velocity width for imaging
+nchan      = 10      # number of channels to image
+rest_freq  = '345.7959899GHz'  # rest frequency of the line (12CO 3-2)
+cell_size  = '0.02arcsec'  # cell size for imaging
+scales     =  [0, 10, 20, 50]
+niter      = 50000
+robust_val =  0.5
+thres      = '3mJy'  
+
+#  Keplerian mask parameters
+r_max  = 1.0       # maximum radius for the mask (arcsec)
+nbeam  = 1.0       # number of beams for the mask
+zr    = 0.2       # height of the mask (arcsec)
+
+# fixed model info (not to be changed, unless needed)
+FOV_val = 5.11      # field of view (arcsec)
+Npix_val = 512       # number of pixels in the model
+Nup_val = 5         
+doppcorr = 'exact'  # Doppler correction method ("exact" is faster)
+noise = None
+
+#########----- SET PARAMETERS FOR MODELING/CLEANING (CHECK) -----#########
 
 pars = np.array([inc, PA, mstar, r_l, z_10, z_q, Tb_10, Tb_q, Tmax_b, 
                  dV_10, logtau_10, tau_q, vlsr, dx, dy])
 
+tclean_kw = {'imsize': imsize, 'start': start_vel, 'width': width,
+             'nchan': nchan, 'restfreq': rest_freq, 'cell': cell_size,
+             'scales': scales, 'niter': niter,
+             'robust': robust_val, 'threshold': thres}#
 
+# Define some Keplerian mask keywords
+kepmask_kw = {'inc': inc, 'PA': PA, 'mstar': mstar, 'dist': dist, 'vlsr': vlsr,
+              'r_max': r_max, 'nbeams': nbeam, 'zr': zr}
+
+# Define some fixed attributes for the model
+if noise is None:
+    fixed_kw = {'FOV': FOV_val, 'Npix': Npix_val, 'dist': dist, 'restfreq': rest_freq,
+            'Nup': Nup_val, 'doppcorr': doppcorr}
+else: 
+    fixed_kw = {'FOV': FOV_val, 'Npix': Npix_val, 'dist': dist, 'restfreq': rest_freq,
+            'Nup': Nup_val, 'doppcorr': doppcorr, 'noise_inject': noise}
+
+##### MODEL #####
 # Instantiate a csalt model
 cm = model('CSALT0')
 
-cdir  = '/Users/sdjiang/.casa/data/alma/simmos/'
+# Get dataset measurement set
+ddict = read_MS(obs_measurement_set) 
 
-cm.template_MS('SigOriData/SO1152_12CO.ms.contsub_lsrk_avg', 
-               config = [cdir+'alma.cycle12.6.cfg'],
-               t_total=['37.88min'], # time on source (OBS ID and FIELD ID)
-               t_integ='6.0s', # 
-               observatory='ALMA',
-               date=['2025/11/13'], # date of observation
-               HA_0=['0.492h'], #  Hour angle at start EB (tstart - ra_angle) 
-               V_span=5800, ### added to specify the velocity span (m/s)
-               restfreq=345.7959899e9, # 12CO 3-2
-               dnu_native=[576725.6325073242], # ChanWid 
-               RA='05:39:39.381821', DEC='-02:17:04.50121')
+if noise is None:
+    pure_mdict = cm.modeldict(ddict, pars, kwargs=fixed_kw)
+else: 
+    pure_mdict, noise_mdict = cm.modeldict(ddict, pars, kwargs=fixed_kw)
+    write_MS(noise_mdict, outfile=f'{mdict_name_prefix}_NOISE.ms')
+
+write_MS(pure_mdict, outfile=f'{mdict_name_prefix}_MODEL.ms')
 
 
-
-# Get the data dictionary from the empty MS - just created 
-ddict = read_MS('SigOriData/SO1152_12CO.ms.contsub_lsrk_.ms') #'SigOriData/SO1152_12CO.ms.contsub_lsrk_.ms') 
-
-pure_mdict, _ = cm.modeldict(ddict, pars, kwargs=fixed_kw)
-
-write_MS(pure_mdict, outfile='SigOriData/SO1152_12CO_PURE.ms')
+# Image the data cubes 
 
 # Image the residual cubes
-imagecube('SigOriData/SO1152_12CO_PURE.ms', 'SigOriData/SO1152_12CO_PURE',
+imagecube(f'{mdict_name_prefix}_MODEL.ms', f'{mdict_name_prefix}_MODEL',
           kepmask_kwargs=kepmask_kw, tclean_kwargs=tclean_kw)
 
 ### Show the results!
 
-cubes = ['SigOriData/SO1152_12CO_PURE']
-lbls = ['pure']
+cubes = [f'{mdict_name_prefix}_MODEL']
+lbls = ['model']
 
 # Export the cubes to FITS format
 from casatasks import exportfits
