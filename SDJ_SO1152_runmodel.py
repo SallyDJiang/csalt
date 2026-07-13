@@ -11,7 +11,7 @@ import matplotlib as mpl
 ### IMPORTANT THINGS TO CHANGE 
 
 datapath = "SigOriData/"
-obs_measurement_set = f'{datapath}SO1152_12CO.ms.contsub_lsrk_.ms'  # path to the measurement set
+obs_measurement_set = f'{datapath}SO1152_12CO.ms.contsub_lsrk_avg'  # path to the measurement set
 mdict_name_prefix = f"{datapath}SO1152_12CO"
 
 ########----- MODEL PARAMETERS BELOW (CHANGE) -----#########
@@ -49,6 +49,8 @@ start_vel  = '7.0km/s'       # starting velocity for imaging
 width      = '1.0km/s'    # velocity width for imaging
 nchan      = 10      # number of channels to image
 rest_freq  = '345.7959899GHz'  # rest frequency of the line (12CO 3-2)
+rest_freq_Hz  = 345.7959899e9  # rest frequency of the line (12CO 3-2)
+
 cell_size  = '0.02arcsec'  # cell size for imaging
 scales     =  [0, 10, 20, 50]
 niter      = 50000
@@ -64,19 +66,11 @@ zr    = 0.2       # height of the mask (arcsec)
 FOV_val = 5.11      # field of view (arcsec)
 Npix_val = 512       # number of pixels in the model
 Nup_val = 5         
-doppcorr = 'exact'  # Doppler correction method ("exact" is faster)
+doppcorr = 'approx'  # Doppler correction method ("exact" is faster)
 noise = None
 
 
 ##### COMPARE MODELS ###### 
-
-
-# Read in the data MS
-ddict = read_MS(obs_measurement_set) 
-
-# Instantiate a csalt model
-cm = model('CSALT')
-
 
 tclean_kw = {'imsize': imsize, 'start': start_vel, 'width': width,
              'nchan': nchan, 'restfreq': rest_freq, 'cell': cell_size,
@@ -88,31 +82,119 @@ kepmask_kw = {'inc': inc, 'PA': PA, 'mstar': mstar, 'dist': dist, 'vlsr': vlsr,
               'r_max': r_max, 'nbeams': nbeam, 'zr': zr}
 
 
-# Set the CSALT model A parameters # 
-inc = 65.8      # inclination (degrees)
-pars = np.array([inc, PA, mstar, r_l, z_10, z_q, Tb_10, Tb_q, Tmax_b, 
-                 dV_10, logtau_10, tau_q, vlsr, dx, dy])
-mdict = cm.modeldict(ddict, pars, kwargs=fixed_kw)
-write_MS(mdict, outfile=f'{mdict_name_prefix}_modelA.ms')
-
-# Set the CSALT model B parameters # 
-inc = 160      # inclination (degrees)
-pars = np.array([inc, PA, mstar, r_l, z_10, z_q, Tb_10, Tb_q, Tmax_b, 
-                 dV_10, logtau_10, tau_q, vlsr, dx, dy])
+# Define some fixed attributes for the model
+if noise is None:
+    fixed_kw = {'FOV': FOV_val, 'Npix': Npix_val, 'dist': dist, 'restfreq': rest_freq_Hz,
+            'Nup': Nup_val, 'doppcorr': doppcorr}
+else: 
+    fixed_kw = {'FOV': FOV_val, 'Npix': Npix_val, 'dist': dist, 'restfreq': rest_freq_Hz,
+            'Nup': Nup_val, 'doppcorr': doppcorr, 'noise_inject': noise}
 
 
-mdict = cm.modeldict(ddict, pars, kwargs=fixed_kw)
-write_MS(mdict, outfile=f'{mdict_name_prefix}_modelB.ms')
+# Read in the data MS
+ddict = read_MS(obs_measurement_set) 
+
+# Instantiate a csalt model
+cm = model('CSALT0')
 
 
+### change r of outer edge 
 
-### image both models 
 
-# Image the data, model, and residual cubes
-imagecube('testdata/Sz129_CO.ms', 'testdata/Sz129_DATA', 
-          kepmask_kwargs=kepmask_kw, tclean_kwargs=tclean_kw)
+for r_var in np.array([50, 120, 150, 200]):  # outer edge (au)
+    pars = np.array([inc, PA, mstar, r_var, z_10, z_q, Tb_10, Tb_q, Tmax_b, 
+                    dV_10, logtau_10, tau_q, vlsr, dx, dy])
+    mdict = cm.modeldict(ddict, pars, kwargs=fixed_kw)
+    write_MS(mdict, outfile=f'{mdict_name_prefix}_model_R{r_var}.ms')
 
-## reuse mask (from modelA)
-tclean_kw['mask'] = 'testdata/Sz129_DATA.mask'
-imagecube('testdata/Sz129_MODEL.ms', 'testdata/Sz129_MODEL', 
-          mk_kepmask=False, tclean_kwargs=tclean_kw)
+for r_var in np.array([50, 120, 150, 200]):  # outer edge (au)
+    imagecube(f'{mdict_name_prefix}_model_R{r_var}.ms', f'{mdict_name_prefix}_MODEL_R{r_var}',
+            kepmask_kwargs=kepmask_kw, tclean_kwargs=tclean_kw)
+
+cubes = [f'{mdict_name_prefix}_MODEL_R{r_var}' for r_var in np.array([50, 120, 150, 200])]
+lbls = np.array([50, 120, 150, 200]).astype(str)
+
+# Export the cubes to FITS format
+from casatasks import exportfits
+for i in range(len(cubes)):
+    exportfits(cubes[i]+'.image', fitsimage=cubes[i]+'.fits',
+               velocity=True, overwrite=True)
+    
+
+
+### change mass of the star and see how it affects the model
+
+# Set the CSALT model multi parameters # 
+for mstar_var in np.array([0.1, 0.2, 0.5, 1.0]):  
+    pars = np.array([inc, PA, mstar_var, r_l, z_10, z_q, Tb_10, Tb_q, Tmax_b, 
+                    dV_10, logtau_10, tau_q, vlsr, dx, dy])
+    mdict = cm.modeldict(ddict, pars, kwargs=fixed_kw)
+    write_MS(mdict, outfile=f'{mdict_name_prefix}_model_M{mstar_var}.ms')
+
+for mstar_var in np.array([0.1, 0.2, 0.5, 1.0]):  
+    imagecube(f'{mdict_name_prefix}_model_M{mstar_var}.ms', f'{mdict_name_prefix}_MODEL_M{mstar_var}',
+            kepmask_kwargs=kepmask_kw, tclean_kwargs=tclean_kw)
+
+cubes = [f'{mdict_name_prefix}_MODEL_M{mstar_var}' for mstar_var in np.array([0.1, 0.2, 0.5, 1.0])]
+lbls = np.array([0.1, 0.2, 0.5, 1.0]).astype(str)
+
+# Export the cubes to FITS format
+from casatasks import exportfits
+for i in range(len(cubes)):
+    exportfits(cubes[i]+'.image', fitsimage=cubes[i]+'.fits',
+               velocity=True, overwrite=True)
+    
+
+
+### change parameter sweep function to make it easier to run multiple models with varying parameters
+
+
+import numpy as np
+from casatasks import exportfits
+
+# Order must match what cm.modeldict expects
+PARAM_ORDER = ['inc', 'PA', 'mstar', 'r_l', 'z_10', 'z_q', 'Tb_10', 'Tb_q',
+               'Tmax_b', 'dV_10', 'logtau_10', 'tau_q', 'vlsr', 'dx', 'dy']
+
+# Baseline/default values for every parameter (edit to match your fiducial model)
+base_params = {
+    'inc': inc, 'PA': PA, 'mstar': mstar, 'r_l': r_l, 'z_10': z_10, 'z_q': z_q,
+    'Tb_10': Tb_10, 'Tb_q': Tb_q, 'Tmax_b': Tmax_b, 'dV_10': dV_10,
+    'logtau_10': logtau_10, 'tau_q': tau_q, 'vlsr': vlsr, 'dx': dx, 'dy': dy,
+}
+
+def run_param_sweep(param_name, values, tag, base_params=base_params,
+                     ddict=ddict, fixed_kw=fixed_kw, kepmask_kw=kepmask_kw,
+                     tclean_kw=tclean_kw, mdict_name_prefix=mdict_name_prefix):
+
+    values = np.asarray(values)
+    labels = values.astype(str)
+    cubes = []
+
+    # --- 1. Write model MS files ---
+    for val in values:
+        pars_dict = dict(base_params)
+        pars_dict[param_name] = val
+        pars = np.array([pars_dict[k] for k in PARAM_ORDER])
+
+        mdict = cm.modeldict(ddict, pars, kwargs=fixed_kw)
+        outfile = f'{mdict_name_prefix}_model_{tag}{val}.ms'
+        write_MS(mdict, outfile=outfile)
+
+    # --- 2. Image each MS ---
+    for val in values:
+        msfile = f'{mdict_name_prefix}_model_{tag}{val}.ms'
+        cube_name = f'{mdict_name_prefix}_MODEL_{tag}{val}'
+        imagecube(msfile, cube_name, kepmask_kwargs=kepmask_kw, tclean_kwargs=tclean_kw)
+        cubes.append(cube_name)
+
+    # --- 3. Export to FITS ---
+    for cube in cubes:
+        exportfits(cube + '.image', fitsimage=cube + '.fits',
+                   velocity=True, overwrite=True)
+
+    return cubes, labels
+
+
+r_cubes, r_lbls = run_param_sweep('r_l', [50, 120, 150, 200], tag='R')
+m_cubes, m_lbls = run_param_sweep('mstar', [0.1, 0.2, 0.5, 1.0], tag='M')

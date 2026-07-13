@@ -17,7 +17,7 @@ output should be a fits with the imaged model cube
 ### IMPORTANT THINGS TO CHANGE 
 
 datapath = "SigOriData/"
-obs_measurement_set = f'{datapath}SO1152_12CO.ms.contsub_lsrk_.ms'  # path to the measurement set
+obs_measurement_set = f'{datapath}SO1152_12CO.ms.contsub_lsrk_avg'  # path to the measurement set
 mdict_name_prefix = f"{datapath}SO1152_12CO"
 
 
@@ -29,7 +29,7 @@ mstar   = 0.58       # stellar mass (solar masses)
 dist    = 391.3     # distance (pc)
 
 # Disk structure
-r_l     = 120       # outer edge (au)
+r_l     = 100       # outer edge (au)
 z_10    = 0.3       # emission surface height normalization (" at r = 1")
 z_q     = 1.5       # emission surface height gradient
 
@@ -56,6 +56,7 @@ start_vel  = '7.0km/s'       # starting velocity for imaging
 width      = '1.0km/s'    # velocity width for imaging
 nchan      = 10      # number of channels to image
 rest_freq  = '345.7959899GHz'  # rest frequency of the line (12CO 3-2)
+rest_freq_Hz  = 345.7959899e9  # rest frequency of the line (12CO 3-2)
 cell_size  = '0.02arcsec'  # cell size for imaging
 scales     =  [0, 10, 20, 50]
 niter      = 50000
@@ -90,10 +91,10 @@ kepmask_kw = {'inc': inc, 'PA': PA, 'mstar': mstar, 'dist': dist, 'vlsr': vlsr,
 
 # Define some fixed attributes for the model
 if noise is None:
-    fixed_kw = {'FOV': FOV_val, 'Npix': Npix_val, 'dist': dist, 'restfreq': rest_freq,
+    fixed_kw = {'FOV': FOV_val, 'Npix': Npix_val, 'dist': dist, 'restfreq': rest_freq_Hz,
             'Nup': Nup_val, 'doppcorr': doppcorr}
 else: 
-    fixed_kw = {'FOV': FOV_val, 'Npix': Npix_val, 'dist': dist, 'restfreq': rest_freq,
+    fixed_kw = {'FOV': FOV_val, 'Npix': Npix_val, 'dist': dist, 'restfreq': rest_freq_Hz,
             'Nup': Nup_val, 'doppcorr': doppcorr, 'noise_inject': noise}
 
 ##### MODEL #####
