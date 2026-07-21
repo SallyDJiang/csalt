@@ -757,15 +757,43 @@ class model:
         priors = importlib.import_module('priors_'+self.prescription)
         Ndim = len(priors.pri_pars)
         p0 = np.empty((Nwalk, Ndim))
+
+        # grab all parameters parameters range 
+        name_to_idx = {name: i for i, name in enumerate(priors.priors_dict)} 
+                
         for ix in range(Ndim):
+            # only parameter with linewidth
+            if priors.pri_types[ix] == "linewidth":
+                temp_idx = name_to_idx["Tb_10"] # what id is Tb_10, in case not ix=9
+
+                Tmin, Tmax = priors.pri_pars[temp_idx]
+            
+                thermal_width_min = np.sqrt(
+                    2 * sc.k * Tmin /
+                    (28 * (sc.m_p + sc.m_e))
+                    )
+                thermal_width_max = np.sqrt(
+                    2 * sc.k * Tmax /
+                    (28 * (sc.m_p + sc.m_e))
+                    )
+
+                #sample randomly from deltav_min to deltav_max 
+                p0[:, ix] = np.random.uniform(
+                    low=thermal_width_min,
+                    high=thermal_width_max,
+                    size=Nwalk)
+                
 #            if ix == 9:
 #                p0[:,ix] = np.sqrt(2 * sc.k * p0[:,6] / (28 * (sc.m_p+sc.m_e)))
-#            else:
+            else:
                 _ = [str(priors.pri_pars[ix][ip])+', '
                      for ip in range(len(priors.pri_pars[ix]))]
                 cmd = 'np.random.'+priors.pri_types[ix]+ \
                       '('+"".join(_)+str(Nwalk)+')'
-                p0[:,ix] = eval(cmd)
+                try: 
+                    p0[:,ix] = eval(cmd)
+                except AttributeError: 
+                    pass 
 
 
 

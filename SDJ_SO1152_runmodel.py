@@ -198,3 +198,45 @@ def run_param_sweep(param_name, values, tag, base_params=base_params,
 
 r_cubes, r_lbls = run_param_sweep('r_l', [50, 120, 150, 200], tag='R')
 m_cubes, m_lbls = run_param_sweep('mstar', [0.1, 0.2, 0.5, 1.0], tag='M')
+zq_cubes, zq_lbls = run_param_sweep('z_q', [0.5, 1.0, 1.5, 2.0], tag='Zq')
+
+
+
+#### TERMINAL 
+
+# Set these for the parameter sweep
+param_name = 'z_q'
+values = np.asarray([0.5, 1.0, 1.5, 2.0])
+tag = 'Zq'
+
+labels = values.astype(str)
+cubes = []
+
+# --- 1. Write model MS files ---
+for val in values:
+    pars_dict = dict(base_params)
+    pars_dict[param_name] = val
+    pars = np.array([pars_dict[k] for k in PARAM_ORDER])
+    mdict = cm.modeldict(ddict, pars, kwargs=fixed_kw)
+    outfile = f'{mdict_name_prefix}_model_{tag}{val}.ms'
+    write_MS(mdict, outfile=outfile)
+
+# --- 2. Image each MS --- (this takes a while)...
+for val in values:
+    msfile = f'{mdict_name_prefix}_model_{tag}{val}.ms'
+    cube_name = f'{mdict_name_prefix}_MODEL_{tag}{val}'
+    imagecube(msfile, cube_name,
+              kepmask_kwargs=kepmask_kw,
+              tclean_kwargs=tclean_kw)
+    cubes.append(cube_name)
+
+# --- 3. Export to FITS ---
+for cube in cubes:
+    exportfits(cube + '.image',
+               fitsimage=cube + '.fits',
+               velocity=True,
+               overwrite=True)
+
+# Save the results
+result_cubes = cubes
+result_labels = labels
