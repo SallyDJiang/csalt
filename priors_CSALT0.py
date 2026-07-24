@@ -13,7 +13,7 @@ priors_dict = {
     'inc'       : ('normal',    [65.8, 0.2 ]),   # inclination (deg)
     'PA'        : ('normal',    [324.9,0.3]),   # position angle (deg)
     'mstar'     : ('uniform',   [0.2, 1.5]),   # stellar mass (Msun)
-    'r_l'       : ('uniform',   [150, 50]),   # outer radius (au)
+    'r_l'       : ('normal',    [150, 50]),   # outer radius (au)
     'z_10'      : ('uniform',   [0.0, 5.0]),   # emission height norm (" at r=1")
     'z_q'       : ('normal',    [1.25, 0.5]),   # emission height gradient
     'Tb_10'     : ('uniform',   [20, 200]),   # brightness temp at 10 au (K)
