@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 def tapered_powerlaw(r, y_0, r_0, y_q, y_tap, y_exp):
     """Exponentially tapered power law."""
-    return y_0 * (r / r_0)**y_q * np.exp(-(r / y_tap)**y_exp)
+    return np.nan_to_num(y_0 * (r / r_0)**y_q * np.exp(-(r / y_tap)**y_exp)) 
 
 
 def parametric_disk(velax, pars, pars_fixed, quiet=True):
@@ -36,7 +36,7 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     dVmax_b = np.sqrt(2 * sc.k * Tmax_b / (28 * (sc.m_p + sc.m_e)))
     x0, y0 = 0., 0.
     z_tap, Tb_tap, dV_tap, tau_tap = np.inf, r_l, r_l, r_l
-    z_exp, Tb_exp, dV_exp, tau_exp = np.inf, np.inf, np.inf, np.inf
+    z_exp, Tb_exp, dV_exp, tau_exp = np.inf, np.inf, np.inf, np.inf #this functionally sets everything to a power law 
     
 
     # Get a simple_disk instance.
@@ -85,11 +85,14 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     # deal with the divergence of power laws close to the disk center. Although
     # this can be specified for each side independently, we assume they're the
     # same for simplicity (so setting `side='both'`).
-    disk.set_Tgas_profile(function=Tgas, min=0.0, max=Tmax_f, side='front')
-    disk.set_Tgas_profile(function=Tgas, min=0.0, max=Tmax_b, side='back')
-    disk.set_dV_profile(function=dV, min=0.0, max=dVmax_f, side='front')
-    disk.set_dV_profile(function=dV, min=0.0, max=dVmax_b, side='back')
-    disk.set_tau_profile(function=tau, min=0.0, max=None, side='both')
+
+    disk.set_Tgas_profile(function=Tgas, vmin=0.0, vmax=Tmax_f, side='front')
+    disk.set_Tgas_profile(function=Tgas, vmin=0.0, vmax=Tmax_b, side='back')
+    disk.set_dV_profile(function=dV, vmin=0.0, vmax=dVmax_f, side='front')
+    disk.set_dV_profile(function=dV, vmin=0.0, vmax=dVmax_b, side='back')
+    disk.set_tau_profile(function=tau, vmin=0.0, vmax=None, side='front')
+    disk.set_tau_profile(function=tau, vmin=0.0, vmax=None, side='back')
+
 
 
     # Set up the velocity structure. Here we use a simple Keplerian rotation
@@ -99,7 +102,7 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
         r_m, z_m = r * sc.au, z_f(r / dist) * dist * sc.au
         vv = np.sqrt(sc.G * mstar * 1.98847e30 * r_m**2 / \
                      np.power(r_m**2 + z_m**2, 1.5))
-        return vv
+        return np.nan_to_num(vv) 
 
     disk.set_vtheta_profile(function=vkep, side='both')
 
