@@ -3,7 +3,7 @@ import numpy as np
 from scipy.spatial import Delaunay
 import scipy.constants as sc
 import warnings
-
+from scipy.interpolate import LinearNDInterpolator 
 
 class csalt_disk:
     
@@ -85,6 +85,8 @@ class csalt_disk:
         else:
             y_dep = np.maximum.accumulate(y_dep, axis=0)
 
+      
+        """
         # interpolation
         points_2D = np.column_stack((x_dep.flatten(), y_dep.flatten()))
         xsys = np.column_stack((xf.flatten(), yf.flatten() * np.cos(inc)))
@@ -97,12 +99,23 @@ class csalt_disk:
         t_obs = np.arctan2(y_obs, az_sgn * x_obs)
         z_obs = z_func(r_obs)
 
-        # backfill extrapolations to a flat disk
-        r = np.where(np.isfinite(r_obs), r_obs, rf)
-        t = np.where(np.isfinite(t_obs), t_obs, tf)
-        z = np.where(np.isfinite(z_obs), z_obs, zf)
+        """
+        #replacing interpolation with SciPy LinearNDInterpolator because the old interpolation method was leaving random NaNs in the middle of the grid 
+        
+        interp_x = LinearNDInterpolator(list(zip(x_dep.flatten(), y_dep.flatten())), x_disk.flatten())
+        interp_y = LinearNDInterpolator(list(zip(x_dep.flatten(), y_dep.flatten())), y_disk.flatten())
 
-        return r, t, z
+        x_obs = np.reshape(interp_x(list(zip(xf.flatten(), yf.flatten()* np.cos(inc)))), self.x_sky.shape)
+        y_obs = np.reshape(interp_y(list(zip(xf.flatten(), yf.flatten()* np.cos(inc)))), self.y_sky.shape)
+
+        r_obs = np.hypot(x_obs, y_obs)
+        t_obs = np.arctan2(y_obs, az_sgn * x_obs)
+        z_obs = z_func(r_obs)  
+             
+        return r_obs, t_obs, z_obs
+        
+
+        
 
 
     def set_disk_coords(self, dx, dy, incl, PA, dist, z_func=None,
@@ -224,12 +237,12 @@ class csalt_disk:
     @property
     def vtheta_f_proj(self):
         vt = self.vtheta_f * np.cos(self.t_disk_f)
-        return vt * np.sin(abs(np.radians(self.incl_f)))
+        return np.nan_to_num(vt * np.sin(abs(np.radians(self.incl_f)))) 
 
     @property
     def vtheta_b_proj(self):
         vt = self.vtheta_b * np.cos(self.t_disk_b)
-        return vt * np.sin(abs(np.radians(self.incl_b)))
+        return np.nan_to_num(vt * np.sin(abs(np.radians(self.incl_b)))) 
 
 
     # -- The emission cube: returns in [Jy/pixel]; velax and vlsr in [m/s]
@@ -250,7 +263,7 @@ class csalt_disk:
 
         # emission distribution (front surface)
         Inu_f = Bnu_f * (1.0 - np.exp(-tau_nuf)) 
-        Inu_f = np.where(np.isfinite(Inu_f), Inu_f, 0.0)
+        Inu_f = np.where(np.isfinite(Inu_f), Inu_f, 0.0) 
 
         # spectrally-dependent optical depths (back surface)
         tau_nub = self.gaussian(velax[:, None, None],
@@ -265,11 +278,12 @@ class csalt_disk:
 
         # emission distribution (back surface)
         Inu_b = Bnu_b * (1.0 - np.exp(-tau_nub)) * np.exp(-tau_nuf)
-        Inu_b = np.where(np.isfinite(Inu_b), Inu_b, 0.0)
+        Inu_b = np.where(np.isfinite(Inu_b), Inu_b, 0.0) 
 
         # combined emission distribution, to proper Jy/pixel units
-        Inu = Inu_f + Inu_b
+        Inu = Inu_f + Inu_b 
         pix_area = (self.cell_sky * np.pi / 180. / 3600.)**2
         Inu *= 1e26 * pix_area
-
+        
+        
         return Inu
