@@ -28,7 +28,7 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     #inc, PA, mstar, r_l, z_10, z_q, Tb_10, Tb_q, Tmax_b, dV_10, \
     #    logtau_10, tau_q, vlsr, dx, dy = pars
 
-    inc, PA, mstar, z_10, z_q, Tb_10, Tb_q, Tmax_b, z_tap, z_exp, \
+    inc, PA, mstar, z_1, z_q, Tb_10, Tb_q, z_tap, z_exp, \
         logtau_10, tau_q,tau_tap, tau_exp, vlsr, dx, dy = pars
 
     #grep -nr "r_l\|dV_10\|logtau\|tau_q\|z_10\|z_q\|Tmax_b\|Tb_10\|Tb_q\|mstar\|pars\[" csalt/ | head -100
@@ -38,7 +38,7 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     #dV_q = 0.5 * Tb_q
     Tmax_f = 1000
     dVmax_f = np.sqrt(2 * sc.k * Tmax_f / (28 * (sc.m_p + sc.m_e)))
-    dVmax_b = np.sqrt(2 * sc.k * Tmax_b / (28 * (sc.m_p + sc.m_e)))
+    dVmax_b = np.sqrt(2 * sc.k * Tmax_f / (28 * (sc.m_p + sc.m_e)))
     x0, y0 = 0., 0.
     #z_tap, Tb_tap, dV_tap, tau_tap = np.inf, r_l, r_l, r_l
     #z_exp, Tb_exp, dV_exp, tau_exp = np.inf, np.inf, np.inf, np.inf
@@ -57,7 +57,7 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     # are symmetric.
     def z_f(r):
         """Emission surface of the front side of the disk."""
-        return tapered_powerlaw(r, z_10, 10., z_q, z_tap, z_exp) # changed from 1'' to 10''
+        return tapered_powerlaw(r, z_1, 1., z_q, z_tap, z_exp) # updated to 1'' 
 
     def z_b(r):
         """Emission surface for the back side of the disk."""
@@ -100,7 +100,7 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     # this can be specified for each side independently, we assume they're the
     # same for simplicity (so setting `side='both'`).
     disk.set_Tgas_profile(function=Tgas, vmin=0.0, vmax=Tmax_f, side='front')
-    disk.set_Tgas_profile(function=Tgas, vmin=0.0, vmax=Tmax_b, side='back')
+    disk.set_Tgas_profile(function=Tgas, vmin=0.0, vmax=Tmax_f, side='back')
     disk.set_dV_profile(function=dV, vmin=0.0, vmax=dVmax_f, side='front')
     disk.set_dV_profile(function=dV, vmin=0.0, vmax=dVmax_b, side='back')
     disk.set_tau_profile(function=tau, vmin=0.0, vmax=None, side='both')

@@ -14,11 +14,10 @@ priors_dict = {
     'PA'        : ('normal',    [324.9,0.3]),   # position angle (deg)
     'mstar'     : ('uniform',   [0.2, 1.5]),   # stellar mass (Msun)
     #'r_l'       : ('normal',    [150, 50]),   # outer radius (au)
-    'z_10'      : ('uniform',   [0.0, 5.0]),   # emission height norm (" at r=1")
+    'z_1'      : ('uniform',   [0.0, 0.5]),   # emission height norm (" at r=1")
     'z_q'       : ('normal',    [1.25, 0.15]),   # emission height gradient
     'Tb_10'     : ('uniform',   [20, 200]),   # brightness temp at 10 au (K)
     'Tb_q'      : ('normal',    [-0.4, 0.1]),   # brightness temp gradient
-    'Tmax_b'    : ('uniform',   [5, 100]),   # max brightness temp (K) ### NOT IN ZALLO MODEL
     'z_tap'      : ('normal',   [110, 10]),   # emission height taper radius (au) ### NEW
     'z_exp'      : ('uniform',   [0.5, 5]),  # emission height taper exponent ### NEW
     #'dV_10'     : ('linewidth', [1000]),    # linewidth at 10 au (m/s)
