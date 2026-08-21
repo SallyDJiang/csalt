@@ -39,7 +39,7 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     Tmax_f = 1000
     dVmax_f = np.sqrt(2 * sc.k * Tmax_f / (28 * (sc.m_p + sc.m_e)))
     dVmax_b = np.sqrt(2 * sc.k * Tmax_f / (28 * (sc.m_p + sc.m_e)))
-    x0, y0 = 0., 0.
+    x0, y0 = dx, dy
     #z_tap, Tb_tap, dV_tap, tau_tap = np.inf, r_l, r_l, r_l
     #z_exp, Tb_exp, dV_exp, tau_exp = np.inf, np.inf, np.inf, np.inf
     
