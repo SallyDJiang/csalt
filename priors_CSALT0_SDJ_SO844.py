@@ -30,7 +30,6 @@ priors_dict = {
     'dy'        : ('normal',    [0.0, 0.1]),   # Dec offset (arcsec)
 }
 
-
 # --- Unpack into lists that csalt expects (do not edit below this line) ---
 pri_types = [v[0] for v in priors_dict.values()]
 pri_pars  = [v[1] for v in priors_dict.values()]
