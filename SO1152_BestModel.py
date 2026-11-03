@@ -57,6 +57,26 @@ dx = -0.017
 dy = 0.007
 
 
+## new model 
+inc = 64.642
+PA = 324.443
+mstar = 0.583
+z_1 = 0.492
+z_q = 1.319
+Tb_10 = 64.503
+Tb_q = -0.238
+z_tap = 197.885
+z_exp = 4.910
+logtau_10 = 4.551
+tau_q = 0.274
+tau_tap = 136.794
+tau_exp = 5.696
+vlsr = 12157.775
+dx = -0.007
+dy = 0.004
+
+
+
 pars = np.array([inc, PA, mstar, z_1, z_q, Tb_10, Tb_q, z_tap, z_exp, logtau_10, tau_q,tau_tap, tau_exp, vlsr, dx, dy])
 
 
@@ -131,7 +151,7 @@ print('freq axis:     ', icube.freqs.shape)  # Hz
 
 
 # Write it to FITS yourself
-cube_to_fits(icube, 'SO1152_InitModel_skyImage.fits',
+cube_to_fits(icube, 'SO1152_InitModel_skyImage_NEWRSPAN.fits',
             restfreq=rest_freq_Hz)
 
 
