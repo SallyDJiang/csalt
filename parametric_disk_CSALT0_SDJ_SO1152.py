@@ -57,7 +57,7 @@ def parametric_disk(velax, pars, pars_fixed, quiet=True):
     # are symmetric.
     def z_f(r):
         """Emission surface of the front side of the disk."""
-        return tapered_powerlaw(r, z_1, 1., z_q, z_tap, z_exp) # updated to 1'' 
+        return tapered_powerlaw(r, z_1, 1., z_q, z_tap/dist, z_exp) # updated to 1'' 
 
     def z_b(r):
         """Emission surface for the back side of the disk."""
