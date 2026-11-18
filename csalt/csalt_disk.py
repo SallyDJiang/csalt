@@ -49,7 +49,7 @@ class csalt_disk:
 
     # -- Populate the disk frame pixel coordinates.  
     def deproj_coords(self, dx, dy, incl, PA, z_func=None, 
-                      side='front', r_span=3., N_span=128):
+                      side='front', r_span=5., N_span=64):
         # proper geometric orientation
         if side == 'front':
             PAr = np.radians(PA)
@@ -119,9 +119,8 @@ class csalt_disk:
 
 
     def set_disk_coords(self, dx, dy, incl, PA, dist, z_func=None,
-                        side='both', r_span=3., N_span=128):
+                        side='both', r_span=5., N_span=64):
 
-        print("test:updated rspan and Nspan")
         if side.lower() == 'both':
             # front surface
             r, t, z = self.deproj_coords(dx, dy, incl, PA, z_func=z_func, 
@@ -256,6 +255,7 @@ class csalt_disk:
                                 self.vtheta_f_proj[None, :, :] + vlsr,
                                 self.dV_f[None, :, :] / np.sqrt(2.0),
                                 self.tau_f[None, :, :])
+        tau_nuf = np.where(np.isfinite(tau_nuf), tau_nuf, 0.0)
 
         # Planck function (front surface)
         Bnu_f = (2 * sc.h * nuax[:, None, None]**3 / sc.c**2) / \
@@ -271,6 +271,7 @@ class csalt_disk:
                                 self.vtheta_b_proj[None, :, :] + vlsr,
                                 self.dV_b[None, :, :] / np.sqrt(2.0),
                                 self.tau_b[None, :, :])
+        tau_nub = np.where(np.isfinite(tau_nub), tau_nub, 0.0)
 
         # Planck function (back surface)
         Bnu_b = (2 * sc.h * nuax[:, None, None]**3 / sc.c**2) / \
