@@ -18,12 +18,12 @@ priors_dict = {
     'z_q'       : ('normal',    [1.25, 0.15]),   # emission height gradient
     'Tb_10'     : ('uniform',   [20, 200]),   # brightness temp at 10 au (K)
     'Tb_q'      : ('normal',    [-0.4, 0.1]),   # brightness temp gradient
-    'z_tap'      : ('normal',   [110, 10]),   # emission height taper radius (au) ### NEW
+    'z_tap'      : ('normal',   [100, 25]),   # emission height taper radius (au) ### NEW
     'z_exp'      : ('uniform',   [0.5, 5]),  # emission height taper exponent ### NEW
     #'dV_10'     : ('linewidth', [1000]),    # linewidth at 10 au (m/s)
     'logtau_10' : ('uniform',   [0.0, 2.0]),   # log10 optical depth at 10 au
     'tau_q'     : ('uniform',   [-4, 1]),   # optical depth gradient
-    'tau_tap'      : ('normal',   [100, 10]),   # optical depth taper radius (au) ### NEW
+    'tau_tap'      : ('normal',   [100, 25]),   # optical depth taper radius (au) ### NEW
     'tau_exp'      : ('uniform',   [0, 50]),  # optical depth taper exponent  ### NEW
     'vlsr'      : ('normal',    [1.2e4, 5e2]),   # systemic velocity (m/s)
     'dx'        : ('normal',    [0.0, 0.1]),   # RA offset (arcsec)
@@ -61,7 +61,7 @@ def logprior_linewidth(theta, ppars):
 def logprior(theta):
     logptheta = np.empty_like(theta)
     # linewidth prior needs Tmax_b (index 8) as second parameter
-    pri_pars[9] = [pri_pars[9][0], theta[8]]
+    # pri_pars[9] = [pri_pars[9][0], theta[8]]
     for i in range(len(theta)):
         cmd = ('logprior_' + pri_types[i] +
                '(theta[' + str(i) + '], ' + str(pri_pars[i]) + ')')

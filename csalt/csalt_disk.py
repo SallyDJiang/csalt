@@ -255,6 +255,7 @@ class csalt_disk:
                                 self.vtheta_f_proj[None, :, :] + vlsr,
                                 self.dV_f[None, :, :] / np.sqrt(2.0),
                                 self.tau_f[None, :, :])
+        tau_nuf = np.where(np.isfinite(tau_nuf), tau_nuf, 0.0)
 
         # Planck function (front surface)
         Bnu_f = (2 * sc.h * nuax[:, None, None]**3 / sc.c**2) / \
@@ -270,6 +271,7 @@ class csalt_disk:
                                 self.vtheta_b_proj[None, :, :] + vlsr,
                                 self.dV_b[None, :, :] / np.sqrt(2.0),
                                 self.tau_b[None, :, :])
+        tau_nub = np.where(np.isfinite(tau_nub), tau_nub, 0.0)
 
         # Planck function (back surface)
         Bnu_b = (2 * sc.h * nuax[:, None, None]**3 / sc.c**2) / \

@@ -41,26 +41,3 @@ _ = cm.sample_posteriors(obs_measurement_set, kwargs=fixed_kw,
                          outpost=mdict_name_prefix+'_posteriors.h5')
 
 
-
-#EB 0 SCOV inverted with direct calculation.
-#100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 10/10 [00:00<00:00, 99.15it/s]
-#100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 50/50 [00:00<00:00, 84.77it/s]
-#backend run in  0.6036109924316406
-
-#   This run took 0.00 hours
-
-### Nwalkers -> Nwalk
-
-
-_ = cm.sample_posteriors(obs_measurement_set, kwargs=fixed_kw,
-                         vra=[7e3, 1.8e4], restfreq=rest_freq_Hz, 
-                         Nwalk=75, Nthreads=1, Ninits=20, Nsteps=100,
-                         outpost=mdict_name_prefix+'_posteriors.h5')
-
-#EB 0 SCOV inverted with direct calculation.
-#100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 20/20 [00:00<00:00, 100.27it/s]
-#100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:01<00:00, 88.05it/s]
-#backend run in  1.149852991104126
-
-
-#    This run took 0.00 hours
